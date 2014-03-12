@@ -1,15 +1,6 @@
 from random import randint, sample
 import matplotlib.pyplot as plt
 
-USAGE = """
-Generates random maze using a backtracking algorithm
-
-Usage: python maze.py N M [filename]
-N - number of rows (must be an odd number)
-M - number of columns (must be an odd number)
-filename - if specified, the maze will be saved to a file
-"""
-
 
 class Maze:
 
@@ -22,10 +13,12 @@ class Maze:
         self.cols = (cols - 1) // 2
         self.actual_num_rows = 2 * self.rows + 1
         self.actual_num_cols = 2 * self.cols + 1
-        self.maze = [[1 for j in range(self.actual_num_cols)]
-                     for i in range(self.actual_num_cols)]
+        self.maze = [[True for j in range(self.actual_num_cols)]
+                     for i in range(self.actual_num_rows)]
+        self.solved_path = [[False for j in range(self.actual_num_cols)]
+                            for i in range(self.actual_num_rows)]
 
-    def generate_maze(self):
+    def generate(self):
         """(Maze) -> None
         generates a random maze"""
         visited = [[False for j in range(self.cols)] for i in range(self.rows)]
@@ -37,7 +30,7 @@ class Maze:
         # While there are unvisited cells
         while True:
             mazeRow, mazeCol = 2 * row + 1, 2 * col + 1
-            self.maze[mazeRow][mazeCol] = 0
+            self.maze[mazeRow][mazeCol] = False
             if numUnvisited == 0:
                 break
             # If the current cell has any neighbours which have not been
@@ -53,7 +46,7 @@ class Maze:
                 # Remove the wall between the current cell and the chosen cell
                 temp_row = mazeRow + chosen[0] - row
                 temp_col = mazeCol + chosen[1] - col
-                self.maze[temp_row][temp_col] = 0
+                self.maze[temp_row][temp_col] = False
                 # Make the chosen cell the current cell and mark it as visited
                 row, col = chosen
                 visited[row][col] = True
@@ -84,34 +77,74 @@ class Maze:
             neighbors.append((row, col + 1))
         return neighbors
 
-    def displayMaze(self):
+    def display(self):
         """(Maze) -> None
         plots the maze """
         plt.gca().yaxis.set_visible(False)
         plt.gca().xaxis.set_visible(False)
         for row in range(len(self.maze)):
             for col in range(len(self.maze[0])):
-                if self.maze[row][col] == 1:
-                    plt.axvspan(row / self.actual_num_rows,
-                                (row + 1) / self.actual_num_rows,
-                                col / self.actual_num_cols,
-                                (col + 1) / self.actual_num_cols)
+                if self.solved_path[row][col] or self.maze[row][col]:
+                    if self.solved_path[row][col]:
+                        color = [0, 1, 0]
+                    elif self.maze[row][col]:
+                        color = 'b'
+                    plt.axvspan(col / self.actual_num_cols,
+                                (col + 1) / self.actual_num_cols,
+                                1 - row / self.actual_num_rows,
+                                1 - (row + 1) / self.actual_num_rows,
+                                facecolor=color)
 
-    def get_open_neighbors(self, row, col):
-        return [x for x in self.get_neighbors(row, col)
-                if self.maze[2*row+1+x[0]-row][2*col+1+x[1]-col] == 0]
+    def solve(self, start=None, finish=None, visited=None):
+        """(Maze, tuple, tuple, set) -> None
+        solves a given maze"""
+        if start is None:
+            start = (0, 0)
+        if finish is None:
+            finish = (self.rows-1, self.cols-1)
+        if visited is None:
+            visited = set()
+        self.solved_path[2 * start[0] + 1][2 * start[1] + 1] = True
+        visited.add(start)
+        if start == finish:
+            return True
+        for neighbor in self.get_neighbors(*start):
+                wall_row = start[0] + 1 + neighbor[0]
+                wall_col = start[1] + 1 + neighbor[1]
+                if not self.maze[wall_row][wall_col] and \
+                   not neighbor in visited and \
+                   self.solve(neighbor, finish, visited):
+
+                    self.solved_path[wall_row][wall_col] = True
+                    return True
+
+        self.solved_path[2 * start[0] + 1][2 * start[1] + 1] = False
+        return False
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print(USAGE)
+    import argparse
+    parser = argparse.ArgumentParser(description="Display a random maze")
+    parser.add_argument('--rows', dest='rows', metavar='N',
+                        type=int, required=False, default=[11],
+                        nargs=1, help="number of rows of maze")
+    parser.add_argument('--cols', dest='cols', metavar='M',
+                        type=int, required=False, default=[11],
+                        nargs=1, help="number of columns of maze")
+    parser.add_argument('--output', dest='file', metavar='file',
+                        required=False, default=None, nargs=1,
+                        help="prints the maze to a png file")
+    parser.add_argument('--solve', dest='solve', action='store_const',
+                        const=True, default=False,
+                        help="display the solution to the maze")
+
+    args = parser.parse_args()
+    m = Maze(args.rows[0], args.cols[0])
+    m.generate()
+    if args.solve:
+        m.solve()
+    m.display()
+    if args.file is None:
+        plt.show()
     else:
-        N, M = sys.argv[1:3]
-        N, M = int(N), int(M)
-        m = Maze(N, M)
-        m.generate_maze()
-        m.displayMaze()
-        if len(sys.argv) == 4:
-            plt.savefig(sys.argv[3])
-        else:
-            plt.show()
+        plt.savefig(args.file[0])
+        plt.close()
