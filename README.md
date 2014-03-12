@@ -5,13 +5,18 @@ Generates random maze using a backtracking algorithm
 
 Usage
 -----
-        $ python maze.py N M [filename]
+        $ maze.py [-h] [--rows N] [--cols M] [--output file] [--solve]
 
-N - number of rows (must be an odd number)
 
-M - number of columns (must be an odd number)
+        Display a random maze
 
-filename - if specified, the maze will be saved to a file
+        optional arguments:
+          -h, --help     show this help message and exit
+          --rows N       number of rows of maze
+          --cols M       number of columns of maze
+          --output file  prints the maze to a png file
+          --solve        display the solution to the maze
+
 
 Required
 --------
