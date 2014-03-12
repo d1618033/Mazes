@@ -87,6 +87,8 @@ class Maze:
     def displayMaze(self):
         """(Maze) -> None
         plots the maze """
+        plt.gca().yaxis.set_visible(False)
+        plt.gca().xaxis.set_visible(False)
         for row in range(len(self.maze)):
             for col in range(len(self.maze[0])):
                 if self.maze[row][col] == 1:
