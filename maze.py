@@ -131,20 +131,29 @@ if __name__ == "__main__":
                         type=int, required=False, default=[11],
                         nargs=1, help="number of columns of maze")
     parser.add_argument('--output', dest='file', metavar='file',
-                        required=False, default=None, nargs=1,
+                        required=False, default=None, nargs='+',
                         help="prints the maze to a png file")
     parser.add_argument('--solve', dest='solve', action='store_const',
                         const=True, default=False,
                         help="display the solution to the maze")
-
     args = parser.parse_args()
     m = Maze(args.rows[0], args.cols[0])
     m.generate()
-    if args.solve:
-        m.solve()
     m.display()
     if args.file is None:
         plt.show()
     else:
         plt.savefig(args.file[0])
-        plt.close()
+    if args.solve:
+        m.solve()
+        m.display()
+        if args.file is None:
+            plt.show()
+        else:
+            if len(args.file) == 1:
+                split = args.file[0].split(".")
+                filename = "".join(split[:-1])
+                extension = split[-1]
+                plt.savefig(filename + "_solved." + extension)
+            elif len(args.file) == 2:
+                plt.savefig(args.file[1])
