@@ -5,12 +5,7 @@ Generates random maze using a backtracking algorithm
 
 Usage
 -----
-<<<<<<< HEAD
         $ python3 maze.py [-h] [--rows N] [--cols M] [--output file [file ...]] [--solve]
-=======
-        $ python maze.py [-h] [--rows N] [--cols M] [--output file] [--solve]
-
->>>>>>> 996cca5e42103da9eeb9292cf11dfa3840573737
 
         Display a random maze
 
